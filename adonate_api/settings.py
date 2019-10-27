@@ -23,7 +23,7 @@ SECRET_KEY = '#8ah&(1x29re=ti%q)lohr*goq)c-9!%pk@7v)_55#-ke7v!8^'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['django-env.2edcpfrm47.us-west-2.elasticbeanstalk.com']
 
 # Application definition
 
@@ -74,11 +74,11 @@ WSGI_APPLICATION = 'adonate_api.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'postgres',
+        'NAME': 'adonate',
         'USER': 'postgres',
-        'PASSWORD': '',
-        'HOST': '',
-        'PORT': ''
+        'PASSWORD': 'Luc@2911',
+        'HOST': 'localhost',
+        'PORT': '5432'
     }
 }
 
@@ -114,6 +114,7 @@ USE_L10N = True
 USE_TZ = True
 
 # Static files (CSS, JavaScript, Images)
-# https://docs.djangoproject.com/en/2.2/howto/static-files/
+# https://docs.djangoproject.com/en/2.1/howto/static-files/
 
 STATIC_URL = '/static/'
+STATIC_ROOT = 'static'

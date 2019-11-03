@@ -23,7 +23,7 @@ SECRET_KEY = '#8ah&(1x29re=ti%q)lohr*goq)c-9!%pk@7v)_55#-ke7v!8^'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['adonate-dev.us-west-2.elasticbeanstalk.com', '127.0.0.1']
+ALLOWED_HOSTS = ['*']
 
 # Application definition
 

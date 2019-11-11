@@ -1,9 +1,8 @@
 from django.conf.urls import url
 from django.urls import path
-from rest_framework.urlpatterns import format_suffix_patterns
 from . import views
 
-urlpatterns = format_suffix_patterns([
+urlpatterns = [
     path('adonator/', views.AdonatorList.as_view()),
     path('adonator/<int:pk>', views.AdonatorDetail.as_view()),
     path('items/', views.ItemList.as_view()),
@@ -16,4 +15,4 @@ urlpatterns = format_suffix_patterns([
     path('adresses/<int:pk>', views.AddressDetail.as_view()),
     path('donations/', views.DonationList.as_view()),
     path('donations/<int:pk>', views.DonationDetail.as_view()),
-])
+]

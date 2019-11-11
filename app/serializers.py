@@ -1,5 +1,9 @@
 from rest_framework import serializers
+from rest_auth.serializers import LoginSerializer as RestAuthLoginSerializer
 from . import models
+
+class LoginSerializer(RestAuthLoginSerializer):
+    username = None
 
 class AdonatorSerializer(serializers.ModelSerializer):
     adonator_galery = serializers.PrimaryKeyRelatedField(many=False, read_only=True, allow_null=True)

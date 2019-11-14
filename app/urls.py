@@ -5,6 +5,7 @@ from . import views
 urlpatterns = [
     path('adonator/', views.AdonatorList.as_view()),
     path('adonator/<int:pk>', views.AdonatorDetail.as_view()),
+    path('auth', views.GetAdonatorByToken),
     path('items/', views.ItemList.as_view()),
     path('items/<int:pk>', views.ItemDetail.as_view()),
     path('campaigns/', views.CampaignList.as_view()),

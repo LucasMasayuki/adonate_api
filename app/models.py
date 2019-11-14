@@ -1,6 +1,7 @@
 from django.db import models
 from django.utils import timezone
 from django.contrib.auth.models import AbstractUser
+from .enums import TagType
 
 # Create your models here.
 
@@ -10,8 +11,7 @@ class Adonator(AbstractUser):
         verbose_name = u'Adonator'
         verbose_name_plural = u'Adonators'
 
-    adonator_galery = models.IntegerField(models.ForeignKey('AdonatorGalery', on_delete=models.PROTECT), null=True, default=None)
-    address = models.IntegerField(models.ForeignKey('Address', on_delete=models.PROTECT), null=True, default=None)
+    address = models.ForeignKey('Address', on_delete=models.PROTECT, null=True)
     cpf = models.CharField(max_length=200, null=True, default=None)
     cnpj = models.CharField(max_length=200, null=True, default=None)
     birth_date = models.DateField(null=True, default=None)
@@ -27,13 +27,10 @@ class Donation(models.Model):
         verbose_name_plural = u'Donations'
 
     id = models.AutoField(primary_key=True)
-    adonator = models.IntegerField(models.ForeignKey('Adonator', on_delete=models.PROTECT), null=True, default=None)
-    item = models.IntegerField(models.ForeignKey('Item', on_delete=models.PROTECT), null=True, default=None)
+    adonator = models.ForeignKey('Adonator', on_delete=models.PROTECT)
+    item = models.ForeignKey('Item', on_delete=models.PROTECT)
     created = models.DateTimeField(editable=False, default=timezone.now)
     modified = models.DateTimeField(default=timezone.now)
-
-    def __str__(self):
-        return self.id
 
     def save(self, *args, **kwargs):
         ''' On save, update timestamps '''
@@ -50,13 +47,10 @@ class DonationCampaign(models.Model):
         verbose_name_plural = u'DonationsCampaigns'
 
     id = models.AutoField(primary_key=True)
-    campaingn = models.IntegerField(models.ForeignKey('Campaign', on_delete=models.PROTECT), null=True, default=None)
-    donation = models.IntegerField(models.ForeignKey('Donation', on_delete=models.PROTECT), null=True, default=None)
+    campaingn = models.ForeignKey('Campaign', on_delete=models.PROTECT)
+    donation = models.ForeignKey('Donation', on_delete=models.PROTECT)
     created = models.DateTimeField(editable=False, default=timezone.now)
     modified = models.DateTimeField(default=timezone.now)
-
-    def __str__(self):
-        return self.id
 
     def save(self, *args, **kwargs):
         ''' On save, update timestamps '''
@@ -78,11 +72,10 @@ class Address(models.Model):
     number = models.IntegerField(blank=True, null=True, default=None)
     state = models.CharField(max_length=200)
     city = models.CharField(max_length=200)
+    lat = models.CharField(max_length=200)
+    lng = models.CharField(max_length=200)
     created = models.DateTimeField(editable=False, default=timezone.now)
     modified = models.DateTimeField(default=timezone.now)
-
-    def __str__(self):
-        return self.id
 
     def save(self, *args, **kwargs):
         ''' On save, update timestamps '''
@@ -99,7 +92,6 @@ class Item(models.Model):
         verbose_name_plural = u'Items'
 
     id = models.AutoField(primary_key=True)
-    item_galery = models.IntegerField(models.ForeignKey('ItemGalery', on_delete=models.PROTECT), null=True, default=None)
     name = models.CharField(max_length=200, default='')
     amount = models.IntegerField(default=0, null=False)
     coments = models.CharField(max_length=200)
@@ -124,8 +116,8 @@ class Report(models.Model):
         verbose_name_plural = u'Reports'
 
     id = models.AutoField(primary_key=True)
-    adonater = models.IntegerField(models.ForeignKey('Adonater', on_delete=models.PROTECT), null=True, default=None)
-    campaign = models.IntegerField(models.ForeignKey('Campaign', on_delete=models.PROTECT), null=True, default=None)
+    adonator = models.ForeignKey('Adonator', on_delete=models.PROTECT)
+    campaign = models.ForeignKey('Campaign', on_delete=models.PROTECT)
     text = models.CharField(max_length=200)
     created = models.DateTimeField(editable=False, default=timezone.now)
     modified = models.DateTimeField(default=timezone.now)
@@ -148,14 +140,11 @@ class Campaign(models.Model):
         verbose_name_plural = u'Campaigns'
 
     id = models.AutoField(primary_key=True)
-    adonater = models.IntegerField(models.ForeignKey('Adonater', on_delete=models.PROTECT), null=True, default=None)
-    item_type_tag = models.IntegerField(models.ForeignKey('Tag', on_delete=models.PROTECT), null=True, default=None)
-    purpose_tag = models.IntegerField(models.ForeignKey('Tag', on_delete=models.PROTECT), null=True, default=None)
-    campaign_galery = models.IntegerField(models.ForeignKey('CampaignGalery', on_delete=models.PROTECT), null=True, default=None)
+    adonator = models.ForeignKey('Adonator', on_delete=models.PROTECT)
     name = models.CharField(max_length=200)
     description = models.CharField(max_length=200)
-    date_start = models.DateField()
-    date_end = models.DateField()
+    start = models.DateField()
+    end = models.DateField()
     created = models.DateTimeField(editable=False, default=timezone.now)
     modified = models.DateTimeField(default=timezone.now)
 
@@ -179,6 +168,7 @@ class Tag(models.Model):
     id = models.AutoField(primary_key=True)
     name = models.CharField(max_length=200)
     color = models.CharField(max_length=200)
+    tag_type = models.CharField(max_length=255, choices=TagType.choices())
     created = models.DateTimeField(editable=False, default=timezone.now)
     modified = models.DateTimeField(default=timezone.now)
 
@@ -192,74 +182,86 @@ class Tag(models.Model):
         self.modified = timezone.now()
         return super(Tag, self).save(*args, **kwargs)
 
-class AdonatorGalery(models.Model):
+class TagCampaign(models.Model):
 
     class Meta:
-        db_table = 'adonator_galery'
-        verbose_name = u'AdonatorGalery'
-        verbose_name_plural = u'AdonatorsGaleries'
+        db_table = 'tag_campaign'
+        verbose_name = u'TagCampaign'
+        verbose_name_plural = u'TagCampaigns'
 
     id = models.AutoField(primary_key=True)
-    adonator = models.IntegerField(models.ForeignKey('Adonator', on_delete=models.PROTECT), null=True, default=None)
-    photo = models.IntegerField( models.ForeignKey('Photo', on_delete=models.PROTECT), null=True, default=None)
+    campaign = models.ForeignKey(Campaign, related_name='tag_campaign', on_delete=models.PROTECT)
+    tag = models.ForeignKey(Tag, related_name='tag', on_delete=models.PROTECT)
     created = models.DateTimeField(editable=False, default=timezone.now)
     modified = models.DateTimeField(default=timezone.now)
-
-    def __str__(self):
-        return self.id
 
     def save(self, *args, **kwargs):
         ''' On save, update timestamps '''
         if not self.id:
             self.created = timezone.now()
         self.modified = timezone.now()
-        return super(AdonatorGalery, self).save(*args, **kwargs)
+        return super(TagCampaign, self).save(*args, **kwargs)
 
-class CampaignGalery(models.Model):
+class CampaignPhoto(models.Model):
 
     class Meta:
-        db_table = 'campaign_galery'
-        verbose_name = u'CampaignGalery'
-        verbose_name_plural = u'CampaignsGaleries'
+        db_table = 'campaign_photo'
+        verbose_name = u'CampaignPhoto'
+        verbose_name_plural = u'CampaignPhotos'
 
     id = models.AutoField(primary_key=True)
-    campaign = models.IntegerField(models.ForeignKey('Campaign', on_delete=models.PROTECT), null=True, default=None)
-    photos = models.IntegerField( models.ForeignKey('Photo', on_delete=models.PROTECT), null=True, default=None)
+    campaign = models.ForeignKey('Campaign', related_name='camapaign_photo', on_delete=models.PROTECT)
+    photo = models.ForeignKey('Photo', related_name='photo_campaign', on_delete=models.PROTECT)
     created = models.DateTimeField(editable=False, default=timezone.now)
     modified = models.DateTimeField(default=timezone.now)
-
-    def __str__(self):
-        return self.id
 
     def save(self, *args, **kwargs):
         ''' On save, update timestamps '''
         if not self.id:
             self.created = timezone.now()
         self.modified = timezone.now()
-        return super(CampaignGalery, self).save(*args, **kwargs)
+        return super(CampaignPhoto, self).save(*args, **kwargs)
 
-class ItemGalery(models.Model):
+class AdonatorPhoto(models.Model):
 
     class Meta:
-        db_table = 'item_galery'
-        verbose_name = u'ItemGalery'
-        verbose_name_plural = u'ItemsGaleries'
+        db_table = 'adonator_photo'
+        verbose_name = u'AdonatorPhoto'
+        verbose_name_plural = u'AdonatorPhotos'
 
     id = models.AutoField(primary_key=True)
-    item = models.IntegerField(models.ForeignKey('Item', on_delete=models.PROTECT), null=True, default=None)
-    photo = models.IntegerField( models.ForeignKey('Photo', on_delete=models.PROTECT), null=True, default=None)
+    adonator = models.ForeignKey('Adonator', related_name='adonator_photo', on_delete=models.PROTECT)
+    photo = models.ForeignKey('Photo', related_name='photo_adonator', on_delete=models.PROTECT)
     created = models.DateTimeField(editable=False, default=timezone.now)
     modified = models.DateTimeField(default=timezone.now)
-
-    def __str__(self):
-        return self.id
 
     def save(self, *args, **kwargs):
         ''' On save, update timestamps '''
         if not self.id:
             self.created = timezone.now()
         self.modified = timezone.now()
-        return super(ItemGalery, self).save(*args, **kwargs)
+        return super(AdonatorPhoto , self).save(*args, **kwargs)
+
+
+class ItemPhoto(models.Model):
+
+    class Meta:
+        db_table = 'item_photo'
+        verbose_name = u'ItemPhoto'
+        verbose_name_plural = u'ItemPhotos'
+
+    id = models.AutoField(primary_key=True)
+    item = models.ForeignKey('Item', related_name='item_photo', on_delete=models.PROTECT)
+    photo = models.ForeignKey('Photo', related_name='photo_item', on_delete=models.PROTECT)
+    created = models.DateTimeField(editable=False, default=timezone.now)
+    modified = models.DateTimeField(default=timezone.now)
+
+    def save(self, *args, **kwargs):
+        ''' On save, update timestamps '''
+        if not self.id:
+            self.created = timezone.now()
+        self.modified = timezone.now()
+        return super(ItemPhoto, self).save(*args, **kwargs)
 
 class Photo(models.Model):
 
@@ -269,12 +271,9 @@ class Photo(models.Model):
         verbose_name_plural = u'Photos'
 
     id = models.AutoField(primary_key=True)
-    photo = models.CharField(max_length=200)
+    photo = models.FileField(upload_to='photo')
     created = models.DateTimeField(editable=False, default=timezone.now)
     modified = models.DateTimeField(default=timezone.now)
-
-    def __str__(self):
-        return self.photo
 
     def save(self, *args, **kwargs):
         ''' On save, update timestamps '''

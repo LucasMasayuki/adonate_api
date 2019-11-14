@@ -5,45 +5,71 @@ from . import models
 class LoginSerializer(RestAuthLoginSerializer):
     username = None
 
-class AdonatorSerializer(serializers.ModelSerializer):
-    adonator_galery = serializers.PrimaryKeyRelatedField(many=False, read_only=True, allow_null=True)
-    address = serializers.PrimaryKeyRelatedField(many=False, read_only=True, allow_null=True)
-
-    class Meta:
-        model = models.Adonator
-        fields = '__all__'
-
 class ItemSerializer(serializers.ModelSerializer):
-    item_galery = serializers.PrimaryKeyRelatedField(many=False, read_only=True, allow_null=True)
 
     class Meta:
         model = models.Item
-        fields = '__all__'
+        fields = ['name', 'amount', 'coments', 'created', 'modified']
+
+class PhotoSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = models.Photo
+        fields = ['photo']
 
 class AddressSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = models.Address
-        fields = '__all__'
+        fields = ['zipcode', 'street', 'number', 'state', 'city', 'lat', 'lng']
+
+
+class AdonatorSerializer(serializers.ModelSerializer):
+    address = AddressSerializer(many=False)
+    class Meta:
+        model = models.Adonator
+        fields = ['address', 'cpf', 'cnpj', 'birth_date', 'username']
+
+class TagSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = models.Tag
+        fields = ['name', 'color', 'tag_type']
+
+class TagCampaignSerializer(serializers.ModelSerializer):
+    tag = TagSerializer(many=False)
+
+    class Meta:
+        model = models.TagCampaign
+        fields = ['tag']
+
+class CampaignPhotoSerializer(serializers.ModelSerializer):
+    photo_campaign = PhotoSerializer(many=True, read_only=True)
+
+    class Meta:
+        model = models.CampaignPhoto
+        fields = ['photo_campaign']
 
 class CampaignSerializer(serializers.ModelSerializer):
-    campaign_galery = serializers.PrimaryKeyRelatedField(many=False, read_only=True, allow_null=True)
+    adonator = AdonatorSerializer(many=False)
+    tag_campaign = TagCampaignSerializer(many=True, read_only=True)
+    camapaign_photo = CampaignPhotoSerializer(many=True, read_only=True, allow_null=True)
 
     class Meta:
         model = models.Campaign
-        fields = '__all__'
+        fields = ['adonator', 'tag_campaign', 'name', 'description', 'start', 'end', 'camapaign_photo']
 
 class DonationSerializer(serializers.ModelSerializer):
-    adonator = serializers.PrimaryKeyRelatedField(many=False, read_only=True, allow_null=True)
-    item = serializers.PrimaryKeyRelatedField(many=True, read_only=True, allow_null=True)
+    adonator = AdonatorSerializer(many=False)
+    item = ItemSerializer(many=False)
 
     class Meta:
         model = models.Donation
-        fields = '__all__'
+        fields = ['adonator', 'item']
 
 class ReportSerializer(serializers.ModelSerializer):
-    adonator = serializers.PrimaryKeyRelatedField(many=False, read_only=True, allow_null=True)
+    adonator = AdonatorSerializer(many=False, allow_null=True)
+    campaign = CampaignSerializer(many=False, allow_null=True)
 
     class Meta:
         model = models.Report
-        fields = '__all__'
+        fields = ['adonator', 'campaign', 'text']

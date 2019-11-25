@@ -11,7 +11,6 @@ class Adonator(AbstractUser):
         verbose_name = u'Adonator'
         verbose_name_plural = u'Adonators'
 
-    address = models.ForeignKey('Address', on_delete=models.PROTECT, null=True)
     cpf = models.CharField(max_length=200, null=True, default=None)
     cnpj = models.CharField(max_length=200, null=True, default=None)
     birth_date = models.DateField(null=True, default=None)
@@ -140,7 +139,8 @@ class Campaign(models.Model):
         verbose_name_plural = u'Campaigns'
 
     id = models.AutoField(primary_key=True)
-    adonator = models.ForeignKey('Adonator', on_delete=models.PROTECT)
+    adonator = models.ForeignKey('Adonator', related_name='adonator', on_delete=models.PROTECT)
+    address = models.ForeignKey('Address', related_name='address', on_delete=models.PROTECT)
     name = models.CharField(max_length=200)
     description = models.CharField(max_length=200)
     start = models.DateField()
@@ -271,7 +271,7 @@ class Photo(models.Model):
         verbose_name_plural = u'Photos'
 
     id = models.AutoField(primary_key=True)
-    photo = models.FileField(upload_to='photo')
+    photo = models.FileField(upload_to='photo', name='photo')
     created = models.DateTimeField(editable=False, default=timezone.now)
     modified = models.DateTimeField(default=timezone.now)
 

@@ -12,6 +12,7 @@ class ItemSerializer(serializers.ModelSerializer):
         fields = ['name', 'amount', 'coments', 'created', 'modified']
 
 class PhotoSerializer(serializers.ModelSerializer):
+
     class Meta:
         model = models.Photo
         fields = ['photo']
@@ -22,18 +23,16 @@ class AddressSerializer(serializers.ModelSerializer):
         model = models.Address
         fields = ['zipcode', 'street', 'number', 'state', 'city', 'lat', 'lng']
 
-
 class AdonatorSerializer(serializers.ModelSerializer):
-    address = AddressSerializer(many=False)
     class Meta:
         model = models.Adonator
-        fields = ['address', 'cpf', 'cnpj', 'birth_date', 'username']
+        fields = ['id', 'username', 'email', 'cpf', 'cnpj', 'birth_date']
 
 class TagSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = models.Tag
-        fields = ['name', 'color', 'tag_type']
+        fields = ['id', 'name', 'color', 'tag_type']
 
 class TagCampaignSerializer(serializers.ModelSerializer):
     tag = TagSerializer(many=False)
@@ -43,20 +42,21 @@ class TagCampaignSerializer(serializers.ModelSerializer):
         fields = ['tag']
 
 class CampaignPhotoSerializer(serializers.ModelSerializer):
-    photo_campaign = PhotoSerializer(many=True, read_only=True)
+    photo = PhotoSerializer(many=False, read_only=True)
 
     class Meta:
         model = models.CampaignPhoto
-        fields = ['photo_campaign']
+        fields = ['photo']
 
 class CampaignSerializer(serializers.ModelSerializer):
     adonator = AdonatorSerializer(many=False)
+    address = AddressSerializer(many=False, read_only=True)
     tag_campaign = TagCampaignSerializer(many=True, read_only=True)
     camapaign_photo = CampaignPhotoSerializer(many=True, read_only=True, allow_null=True)
 
     class Meta:
         model = models.Campaign
-        fields = ['adonator', 'tag_campaign', 'name', 'description', 'start', 'end', 'camapaign_photo']
+        fields = ['adonator', 'tag_campaign', 'camapaign_photo', 'address', 'id', 'name', 'description', 'start', 'end']
 
 class DonationSerializer(serializers.ModelSerializer):
     adonator = AdonatorSerializer(many=False)

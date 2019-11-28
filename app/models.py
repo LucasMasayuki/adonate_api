@@ -11,9 +11,7 @@ class Adonator(AbstractUser):
         verbose_name = u'Adonator'
         verbose_name_plural = u'Adonators'
 
-    cpf = models.CharField(max_length=200, null=True, default=None)
-    cnpj = models.CharField(max_length=200, null=True, default=None)
-    birth_date = models.DateField(null=True, default=None)
+    name = models.CharField(max_length=200, default=None, blank=True, null=True)
 
     def __str__(self):
         return self.email

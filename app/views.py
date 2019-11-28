@@ -218,19 +218,22 @@ class SaveCampaignsOfAdonator(APIView):
     
 class filterCampaign(APIView):
     def get(self, request):
-        campaignName = request.data["campaign_name"]
+        campaignName = request.GET.get('campaign_name', None)
+        porpouse = request.GET.get('purpouse', None)
+        itemType = request.GET.get('item_type', None)
 
         tagsNames = []
+        campaignsWithTagId = None
 
-        if request.data["purpouse"] and request.data["item_type"]:
-             tagsNames = [
-                request.data["purpouse"],
-                request.data["git"],
-             ]
+        if porpouse:
+             tagsNames.append(porpouse)
+
+        if itemType:
+             tagsNames.append(itemType)
 
         if tagsNames.__len__ != 0 :
-            tagsId = Tag.objects.filter(name__in=tagsNames).values_list('id', flat=True)
-            campaignsWithTagId = TagCampaign.objects.filter(tag_id__in=tagsId).values_list('id', flat=True)
+            tagsId = Tag.objects.filter(name__in=tagsNames)
+            campaignsWithTagId = TagCampaign.objects.filter(tag_id__in=tagsId).values_list('campaign_id', flat=True)
 
         if campaignsWithTagId:
             if campaignName:

@@ -26,7 +26,7 @@ class AddressSerializer(serializers.ModelSerializer):
 class AdonatorSerializer(serializers.ModelSerializer):
     class Meta:
         model = models.Adonator
-        fields = ['id', 'username', 'email', 'cpf', 'cnpj', 'birth_date']
+        fields = ['id', 'name', 'email']
 
 class TagSerializer(serializers.ModelSerializer):
 

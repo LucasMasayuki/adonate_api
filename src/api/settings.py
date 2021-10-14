@@ -159,10 +159,10 @@ AUTHENTICATION_BACKENDS = (
 )
 
 #DEFAULT_FILE_STORAGE = 'storages.backends.gcloud.GoogleCloudStorage'
-GS_BUCKET_NAME = 'adonate-bucket'
+GS_BUCKET_NAME=os.environ.get("GOOGLE_BUCKET_NAME", "")
 
-GS_PROJECT_ID = 'adonate'
-GS_MEDIA_BUCKET_NAME = 'adonate-bucket'
+GS_PROJECT_ID = os.environ.get("GOOGLE_PROJECT_ID", "")
+GS_MEDIA_BUCKET_NAME=os.environ.get("GOOGLE_BUCKET_NAME", "")
 MEDIA_URL = 'https://storage.googleapis.com/{}/'.format(GS_MEDIA_BUCKET_NAME)
 
-GOOGLE_MAPS_API_KEY="AIzaSyAQUOFr0eaGdYIz-gZUwhG5JROWL7vnXvE"
+GOOGLE_MAPS_API_KEY=os.environ.get("GOOGLE_MAPS_API_KEY", "")

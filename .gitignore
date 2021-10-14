@@ -116,3 +116,4 @@ script_to_reencode_requiriments.py
 adonate-2d7cc4277e4f.json
 
 .env
+.env.dev

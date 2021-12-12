@@ -112,29 +112,39 @@ class GetCampaignsOfAdonator(APIView):
 
 
 class SaveCampaignsOfAdonator(APIView):
-    def saveCampaign(self, campaignData):
-        campaign = Campaign.objects.filter(pk=campaignData["id"]).first()
-        campaign.name = campaignData["name"]
-        campaign.start = campaignData["start"]
-        campaign.end = campaignData["end"]
-        campaign.description = campaignData["description"]
+    serializer_class = CampaignSerializer
+
+    def saveCampaign(self, data):
+        campaign = Campaign.objects.filter(pk=data["campaign[id]"]).first()
+        campaign.name = data["campaign[name]"]
+        campaign.start = data["campaign[start]"]
+        campaign.end = data["campaign[end]"]
+        campaign.description = data["campaign[description]"]
         campaign.save()
 
-    def saveAddress(self, addressData, campaignId):
+    def saveAddress(self, data, campaignId):
         address = Address.objects.filter(pk=campaignId).first()
 
-        response = self.getLatLngFromGoogle(addressData)
+        response = self.getLatLngFromGoogle(data)
 
-        address.zipcode = addressData["zipcode"]
-        address.number = addressData["number"]
-        address.city = addressData["city"]
-        address.state = addressData["state"]
-        address.street = addressData["street"]
+        address.zipcode = data["address[zipcode]"]
+        address.number = data["address[number]"]
+        address.city = data["address[city]"]
+        address.state = data["address[state]"]
+        address.street = data["address[street]"]
         address.lat = response[0]
         address.lng = response[1]
         address.save()
 
-    def getLatLngFromGoogle(self, address):
+    def getLatLngFromGoogle(self, data):
+        address = {
+            'zipcode': data["address[zipcode]"],
+            'street': data["address[street]"],
+            'number': data["address[number]"],
+            'state': data["address[state]"],
+            'city': data["address[city]"],
+        }
+
         api_response = requests.get(
             'https://maps.googleapis.com/maps/api/geocode/json?address={0}&key={1}'.format(address, settings.GOOGLE_MAPS_API_KEY))
         api_response_dict = api_response.json()
@@ -163,61 +173,56 @@ class SaveCampaignsOfAdonator(APIView):
             CampaignPhoto.objects.create(
                 campaign_id=campaignId, photo_id=photo.id)
 
-        decodedImg = base64.decodestring(photoData["encoded_img"])
-        photo.photo.save(photoData["img_name"], decodedImg)
+        decodedImg = base64.decodestring(photoData["photo[encoded_img]"])
+        photo.photo.save(photoData["photo[img_name]"], decodedImg)
 
-    def post(self, request):
-        print(request)
-        print(request.data['campaign'])
-        campaignData = request.POST.get["campaign"]
-        addressData = request.POST.get["address"]
-        tagsData = request.POST.get["tags"]
-        photoData = request.POST.get["photo"]
+    def put(self, request):
+        data = request.data.dict()
 
         tagsName = [
-            tagsData["purpouse"],
-            tagsData["item_type"],
+            data["tags[purpouse]"],
+            data["tags[item_type]"],
         ]
 
-        self.saveCampaign(campaignData)
-        self.saveAddress(addressData, campaignData["id"])
-        self.saveTags(tagsName, campaignData["id"])
+        self.saveCampaign(data)
+        self.saveAddress(data, data["campaign[id]"])
+        self.saveTags(tagsName, data["campaign[id]"])
 
-        if photoData:
-            self.savePhoto(photoData, campaignData["id"])
+        if hasattr(data, "photo[encoded_img]") & hasattr(data, "photo[img_name]"):
+            self.savePhoto(data, data["campaign[id]"])
 
         return Response(status=status.HTTP_200_OK)
 
-    def put(self, request):
-        campaignData = request.data["campaign"]
-        addressData = request.data["address"]
-        tagsData = request.data["tags"]
-        photoData = request.data["photo"]
+    def post(self, request):
+        data = request.data.dict()
 
-        response = self.getLatLngFromGoogle(addressData)
+        address = Address.objects.filter(
+            zipcode=data['address[zipcode]']).first()
 
-        address = Address.objects.create(
-            zipcode=addressData["zipcode"],
-            street=addressData["street"],
-            number=addressData["number"],
-            state=addressData["state"],
-            lat=response[0],
-            lng=response[1],
-            city=addressData["city"]
-        )
+        if (address == None):
+            response = self.getLatLngFromGoogle(data)
+            address = Address.objects.create(
+                zipcode=data["address[zipcode]"],
+                street=data["address[street]"],
+                number=data["address[number]"],
+                state=data["address[state]"],
+                lat=response[0],
+                lng=response[1],
+                city=data["address[city]"]
+            )
 
         campaign = Campaign.objects.create(
             address_id=address.id,
             adonator_id=request.user.id,
-            name=campaignData["name"],
-            description=campaignData["description"],
-            start=campaignData["start"],
-            end=campaignData["end"]
+            name=data["campaign[name]"],
+            description=data["campaign[description]"],
+            start=data["campaign[start]"],
+            end=data["campaign[end]"]
         )
 
         tagsName = [
-            tagsData["purpouse"],
-            tagsData["item_type"],
+            data["tags[purpouse]"],
+            data["tags[item_type]"],
         ]
 
         tagsList = Tag.objects.filter(name__in=tagsName).all()
@@ -230,12 +235,13 @@ class SaveCampaignsOfAdonator(APIView):
             )
             i += 1
 
-        if photoData:
-            decodedImg = base64.decodestring(photoData["encoded_img"])
+        if hasattr(data, "photo[encoded_img]") & hasattr(data, "photo[img_name]"):
+            decodedImg = base64.decodestring(data["photo[encoded_img]"])
             photo = Photo.objects.create()
-            photo.photo.save(photoData["img_name"], decodedImg)
+            photo.photo.save(data["photo[img_name]"], decodedImg)
             CampaignPhoto.objects.create(
-                photo_id=photo.id, campaign_id=campaign.id)
+                photo_id=photo.id, campaign_id=campaign.id
+            )
 
         return Response(status=status.HTTP_200_OK)
 
@@ -257,6 +263,8 @@ class filterCampaign(APIView):
 
         if tagsNames.__len__ != 0:
             tagsId = Tag.objects.filter(name__in=tagsNames)
+            print(tagsNames)
+            print(tagsId)
             campaignsWithTagId = TagCampaign.objects.filter(
                 tag_id__in=tagsId).values_list('campaign_id', flat=True)
 
